@@ -146,99 +146,168 @@ CREATE TABLE IF NOT EXISTS `sys_logs` (
 
 
 
--- --------------------------------------------------------
--- (业务表)记事本表 `tbj_notepad`
--- --------------------------------------------------------
--- content 内容 因是TEXT类型不能设置缺省值所以入库时尽量初始化为空字符串减少程序错误
-CREATE TABLE IF NOT EXISTS `tbj_notepad` (
-  `nid` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '自动id',
-  `uid` bigint unsigned NOT NULL DEFAULT '0' COMMENT '用户ID',
-  `url` varchar(50) BINARY NOT NULL DEFAULT '' COMMENT '访问地址(区分大小写)',
-  `share` varchar(50) BINARY NOT NULL DEFAULT '' COMMENT '共享地址(区分大小写)',
-  `content` text COMMENT '内容',
-  `pwd` varchar(30) DEFAULT '' COMMENT '密码',
-  `caret` mediumint(8) DEFAULT '0' COMMENT '光标位置',
-  `scroll` mediumint(8) DEFAULT '0' COMMENT '滚动位置',
-  `ip` varchar(128) DEFAULT '0.0.0.0' COMMENT 'IP地址',
-  `referer` varchar(255) DEFAULT '' COMMENT '纸张来源',
-  `state` tinyint(2) NOT NULL DEFAULT '1' COMMENT '状态(0锁定 1正常)',
-  `intime` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间(自动)',
-  `uptime` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间(自动)',
-  PRIMARY KEY (`nid`),
-  UNIQUE KEY `url` (`url`),
-  UNIQUE KEY `share` (`share`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='记事本表';
+
+
+
+
+
+
+
 
 -- --------------------------------------------------------
--- (业务表)联系人表 `tbj_contact`
+-- (商城业务)店铺表 `store_merchant`
 -- --------------------------------------------------------
--- phone 电话(手机,住宅,单位,自定义)格式 [TEL::xxx||TEL_CELL_WORK::xxx||TEL_FAX::xxx||TEL_FAX_HOME::xxx]
--- mail 邮箱(个人,单位,家用,自定义)格式 [EMAIL::xxx||EMAIL_HOME::xxx||EMAIL_WORK::xxx]
--- im 聊天(QQ,WeChat,Skype,Line,自定义)格式 [X-QQ::xxx||X-WECHAT::xxx]
--- http 网址(个人,单位,自定义)格式 [URL::xxx||URL_WORK::xxx]
--- 地址(家庭,单位,其他,自定义)格式 [ADR::xxx||ADR_HOME::xxx]
--- remind 提醒方式(email,phone)格式 {email::7,1,0||phone::7,1,0||..} 提前7天、1天、0当天 
-CREATE TABLE IF NOT EXISTS `tbj_contact` (
-  `cid` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '自动id',
-  `uid` bigint unsigned NOT NULL DEFAULT '0' COMMENT '用户ID',
-  `fullname` varchar(50) NOT NULL DEFAULT '' COMMENT '姓名',
-  `pinyin` varchar(50) NOT NULL DEFAULT '' COMMENT '拼音',
-  `nickname` varchar(32) DEFAULT '' COMMENT '昵称绰号',
-  `picture` varchar(255) DEFAULT '' COMMENT '相片照片',
-  `phone` varchar(255) DEFAULT '' COMMENT '电话与传真(手机,住宅,单位,自定义)',
-  `mail` varchar(255) DEFAULT '' COMMENT '邮箱(个人,单位,家用,自定义)',
-  `im` varchar(255) DEFAULT '' COMMENT '聊天(QQ,WeChat,Skype,LINE,自定义)',
-  `http` varchar(255) DEFAULT '' COMMENT '网址(个人,单位,自定义)',
-  `company` varchar(100) DEFAULT '' COMMENT '公司部门',
-  `position` varchar(100) DEFAULT '' COMMENT '职位头衔',
-  `address` varchar(255) DEFAULT '' COMMENT '地址(家庭,单位,其他,自定义)',
-  `gender` char(1) NOT NULL DEFAULT '0' COMMENT '性别(0未知 1男 2女)',
-  `birthday` datetime DEFAULT '0000-00-00 00:00:00' COMMENT '出生时间',
-  `lunar` tinyint(1) DEFAULT '0' COMMENT '是否为农历',
-  `grouptag` varchar(32) DEFAULT '' COMMENT '分组',
-  `remind` varchar(255) DEFAULT '' COMMENT '提醒方式(email,phone)',
-  `relation` varchar(50) DEFAULT '' COMMENT '关系',
-  `family` varchar(50) DEFAULT '' COMMENT '家庭户主',
-  `note` varchar(2000) DEFAULT '' COMMENT '备注',
-  `state` tinyint(1) NOT NULL DEFAULT '1' COMMENT '状态类别(0删除 1正常 2纪念日 3闹铃)',
-  `intime` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间(自动)',
-  `uptime` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间(自动)',
-  PRIMARY KEY (`cid`),
-  KEY `uid` (`uid`),
-  KEY `fullname` (`fullname`),
-  KEY `pinyin` (`pinyin`),
-  KEY `birthday` (`birthday`),
-  KEY `grouptag` (`grouptag`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='联系人表';
+-- mid 店铺ID  = “2” + 毫秒时间戳13位(1552276542005)
+-- resellerrate 默认佣金比例 = 一级金额,二级金额,三级金额 (佣金总计不超销售金额50%才合法)
+
+CREATE TABLE IF NOT EXISTS `store_merchant` (
+    `mid` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '店铺ID(自动)',
+    `uid` bigint unsigned NOT NULL DEFAULT '0' COMMENT '用户ID',
+    `domain` varchar(255) NOT NULL DEFAULT '' COMMENT '店铺网址',
+    `title` varchar(255) NOT NULL DEFAULT '' COMMENT '店铺名',
+    `name` varchar(255) NOT NULL DEFAULT '' COMMENT '商户名',
+    `icon` varchar(255) NOT NULL DEFAULT '' COMMENT '店铺图标',
+    `object` text COMMENT 'banner轮播图(不检索,可存json数组)',
+    `remark` varchar(255) NOT NULL DEFAULT '' COMMENT '备注',
+    `state` tinyint NOT NULL DEFAULT '1' COMMENT '状态(0闭店 1营业 2审核中)',
+    `reseller` tinyint NOT NULL DEFAULT '0' COMMENT '分销级别(0无分销 1一级分销 2二级分销 3三级分销)',
+    `resellerrate` varchar(255) NOT NULL DEFAULT '20,10,5' COMMENT '缺省佣金比例',
+    `intime` datetime NOT NULL DEFAULT '0000-00-00 00:00:00' COMMENT '注册时间',
+    `uptime` datetime NOT NULL DEFAULT '0000-00-00 00:00:00' COMMENT '更新时间',
+    PRIMARY KEY (`mid`),
+    UNIQUE KEY `domain` (`domain`),
+    KEY `uid` (`uid`),
+    KEY `title` (`title`),
+    KEY `name` (`name`),
+    KEY `state` (`state`),
+    KEY `reseller` (`reseller`)
+  ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='店铺表';
+
+
+
 
 -- --------------------------------------------------------
--- (业务表)记帐表 `tbj_account`
+-- (商城业务)商品表 `store_product`
 -- --------------------------------------------------------
-CREATE TABLE IF NOT EXISTS `tbj_account` (
-  `aid` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '自动id',
-  `uid` bigint unsigned NOT NULL DEFAULT '0' COMMENT '用户ID',
-  `item` varchar(10) NOT NULL DEFAULT '支出' COMMENT '操作项目(支出,收入,借款,还款)',  
-  `class` varchar(10) NOT NULL DEFAULT '' COMMENT '主分类',
-  `sort` varchar(10) NOT NULL DEFAULT '' COMMENT '子类别',
-  `cid` bigint unsigned NOT NULL DEFAULT '0' COMMENT '收支对象ID',
-  `object` varchar(32) NOT NULL DEFAULT '' COMMENT '收支对象',
-  `accounts` varchar(10) NOT NULL DEFAULT '现金' COMMENT '操作账户(现金,银行卡,存折)',
-  `money` decimal(18,2) NOT NULL DEFAULT '0.00' COMMENT '金额（元）',
-  `note` varchar(88) DEFAULT '' COMMENT '备注说明',
-  `btime` datetime NOT NULL DEFAULT '0000-00-00 00:00:00' COMMENT '帐单时间',
-  `intime` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '入库时间(自动)',
-  `uptime` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间(自动)',
-  PRIMARY KEY (`aid`),
-  KEY `item` (`item`),
-  KEY `class` (`class`),
-  KEY `sort` (`sort`),
-  KEY `cid` (`cid`),
-  KEY `accounts` (`accounts`),
-  KEY `note` (`note`),
-  KEY `object` (`object`),
-  KEY `btime` (`btime`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='记帐表';
+-- pid 商品ID  = “2” + 毫秒时间戳13位(1552276542005) + 4位随机数(0001)
+-- poster 商品海报 = 轮播图或视频 json 格式，包含 video和image类型
+-- parameter 当某一参数为多个时页面显示相信的诸如颜色和规格的选择
+-- label 价签 = 显示活动价折扣价促销价拼团价报名预约等
+
+
+CREATE TABLE IF NOT EXISTS `store_product` (
+    `pid` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '商品ID(自动)',
+    `mid` bigint unsigned NOT NULL DEFAULT '0' COMMENT '店铺ID',
+    `type` varchar(255) NOT NULL DEFAULT '' COMMENT '商品分类',
+    `title` varchar(255) NOT NULL DEFAULT '' COMMENT '商品名',
+    `image` varchar(255) NOT NULL DEFAULT '' COMMENT '商品图',
+    `poster` text COMMENT '商品海报(轮播图或视频）',
+    `description` text COMMENT '商品描述',
+    `parameter` varchar(1024) NOT NULL DEFAULT '' COMMENT '商品参数(json格式当)',
+    `hot` tinyint(1) NOT NULL DEFAULT '0' COMMENT '推荐商品(0普通 1推荐 2热卖)',
+    `remark` varchar(255) NOT NULL DEFAULT '' COMMENT '备注',
+    `price` decimal(18,2) NOT NULL DEFAULT '0.00' COMMENT '售价(可免费)',
+    `primed` decimal(18,2) NOT NULL DEFAULT '0.00' COMMENT '原价',
+    `label` varchar(32) NOT NULL DEFAULT '活动价' COMMENT '价签(拼团,报名,预约)',
+    `capacity` int NOT NULL DEFAULT '0' COMMENT '拼团人数',
+    `stock` int NOT NULL DEFAULT '0' COMMENT '当前库存',
+    `sales` int NOT NULL DEFAULT '0' COMMENT '总销量',
+    `state` tinyint NOT NULL DEFAULT '1' COMMENT '状态(0下架 1上架)',
+    `uid` bigint unsigned NOT NULL DEFAULT '0' COMMENT '操作人ID',
+    `intime` datetime NOT NULL DEFAULT '0000-00-00 00:00:00' COMMENT '添加时间',
+    `uptime` datetime NOT NULL DEFAULT '0000-00-00 00:00:00' COMMENT '更新时间',
+    PRIMARY KEY (`pid`),
+    KEY `mid` (`mid`),
+    KEY `title` (`title`),
+    KEY `hot` (`hot`),
+    KEY `price` (`price`),
+    KEY `primed` (`primed`),
+    KEY `capacity` (`capacity`),
+    KEY `stock` (`stock`),
+    KEY `sales` (`sales`),
+    KEY `state` (`state`),
+    KEY `uptime` (`uptime`)
+  ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='商品表';
+
+
 
 -- --------------------------------------------------------
--- (业务表)其它业务表
+-- (商城业务)订单表 `stroe_order`
 -- --------------------------------------------------------
+-- oid 订单表ID  = “2” + 毫秒时间戳13位(1552276542005) + 4位随机数(0001)
+-- 自动冗余店铺信息、商家信息、商品信息、买家信息
+
+CREATE TABLE IF NOT EXISTS `stroe_order` (
+    `oid` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '订单表ID(自动)',
+
+    `mid` bigint unsigned NOT NULL DEFAULT '0' COMMENT '商铺ID',
+    `title` varchar(255) NOT NULL DEFAULT '' COMMENT '店铺名',
+    `icon` varchar(255) NOT NULL DEFAULT '' COMMENT '店铺图标',
+    `reseller` tinyint NOT NULL DEFAULT '0' COMMENT '当前分销级别',
+    `resellerrate` varchar(255) NOT NULL DEFAULT '' COMMENT '当前佣金比例',
+    
+    `pid` bigint unsigned NOT NULL DEFAULT '0' COMMENT '商品ID',
+    `title` varchar(255) NOT NULL DEFAULT '' COMMENT '商品名',
+    `image` varchar(255) NOT NULL DEFAULT '' COMMENT '商品图',
+    `parameter` varchar(255) NOT NULL DEFAULT '' COMMENT '商品参数（数组）',
+    `gid` int NOT NULL DEFAULT '0' COMMENT '该订单拼团ID',
+    
+    `price` decimal(18,2) NOT NULL DEFAULT '0.00' COMMENT '成交价格',
+    `quantity` int NOT NULL DEFAULT '0' COMMENT '下单数量',
+
+    `uid` bigint unsigned NOT NULL DEFAULT '0' COMMENT '买家ID',
+    `nickname` varchar(128) NOT NULL DEFAULT '' COMMENT '昵称',
+    `email` varchar(128) NOT NULL DEFAULT '' COMMENT '邮箱',
+    `cell` varchar(128) NOT NULL DEFAULT '' COMMENT '电话',
+    `fname` varchar(50) NOT NULL DEFAULT '' COMMENT '姓名',
+    `address` varchar(255) NOT NULL DEFAULT '' COMMENT '地址',
+    `city` varchar(255) NOT NULL DEFAULT '' COMMENT '城市',
+    `province` varchar(255) NOT NULL DEFAULT '' COMMENT '省份',
+    
+    
+    
+    `remark` varchar(255) NOT NULL DEFAULT '' COMMENT '备注',
+    `state` tinyint NOT NULL DEFAULT '1' COMMENT '订单状态(0待支付、1已支付、2拼单中、3已发货、4已完成、5已取消、6异常)',
+    `logistics` varchar(255) NOT NULL DEFAULT '' COMMENT '物流公司',
+    `waybill` varchar(255) NOT NULL DEFAULT '' COMMENT '快递单号',
+    `intime` datetime NOT NULL DEFAULT '0000-00-00 00:00:00' COMMENT '添加时间',
+    `uptime` datetime NOT NULL DEFAULT '0000-00-00 00:00:00' COMMENT '更新时间',
+    PRIMARY KEY (`pid`),
+    KEY `mid` (`mid`),
+    KEY `uid` (`uid`),
+    KEY `title` (`title`),
+    KEY `hot` (`hot`),
+    KEY `price` (`price`),
+    KEY `stock` (`stock`),
+    KEY `sales` (`sales`),
+    KEY `state` (`state`),
+    KEY `uptime` (`uptime`)
+  ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='订单表';
+
+
+store_group
+
+CREATE TABLE group (
+  group_id INT PRIMARY KEY,
+  item_id INT NOT NULL,
+  group_price DECIMAL(10,2) NOT NULL,
+  group_limit INT NOT NULL,
+  FOREIGN KEY (item_id) REFERENCES item(item_id)
+);
+CREATE TABLE group_order (
+  order_id INT PRIMARY KEY,
+  group_id INT NOT NULL,
+  buyer_id INT NOT NULL,
+  FOREIGN KEY (group_id) REFERENCES group(group_id)
+);
+CREATE TABLE distribution (
+  distribution_id INT PRIMARY KEY,
+  item_id INT NOT NULL,
+  distribution_level INT NOT NULL,
+  distribution_commission DECIMAL(5,2) NOT NULL,
+  FOREIGN KEY (item_id) REFERENCES item(item_id)
+);
+
+
+
+
