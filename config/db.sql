@@ -193,6 +193,7 @@ CREATE TABLE IF NOT EXISTS `store_merchant` (
 -- poster 商品海报 = 轮播图或视频 json 格式，包含 video和image类型
 -- parameter 当某一参数为多个时页面显示相信的诸如颜色和规格的选择
 -- label 价签 = 显示活动价折扣价促销价拼团价报名预约等
+-- 注意当有拼团订单正在进行中时不能修改商品信息
 
 CREATE TABLE IF NOT EXISTS `store_product` (
     `pid` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '商品ID(自动)',
@@ -210,6 +211,7 @@ CREATE TABLE IF NOT EXISTS `store_product` (
     `label` varchar(32) NOT NULL DEFAULT '活动价' COMMENT '价签(拼团,报名,预约)',
     `capacity` int NOT NULL DEFAULT '0' COMMENT '最大拼团人数',
     `achieve` int NOT NULL DEFAULT '0' COMMENT '拼团成功人数',
+    `deadline` int NOT NULL DEFAULT '0' COMMENT '拼团截止时间(分钟)',
     `stock` int NOT NULL DEFAULT '0' COMMENT '当前库存',
     `sales` int NOT NULL DEFAULT '0' COMMENT '总销量',
     `state` tinyint NOT NULL DEFAULT '1' COMMENT '状态(0下架 1上架)',
@@ -253,7 +255,7 @@ CREATE TABLE IF NOT EXISTS `stroe_order` (
     `title` varchar(255) NOT NULL DEFAULT '' COMMENT '商品名',
     `image` varchar(255) NOT NULL DEFAULT '' COMMENT '商品图',
     `parameter` varchar(255) NOT NULL DEFAULT '' COMMENT '商品参数（数组）',
-    `gid` int NOT NULL DEFAULT '0' COMMENT '该订单拼团ID',
+    `gid` int NOT NULL DEFAULT '0' COMMENT '拼团ID',
     `price` decimal(18,2) NOT NULL DEFAULT '0.00' COMMENT '成交价格',
     `quantity` int NOT NULL DEFAULT '1' COMMENT '下单数量',
     `uid` bigint unsigned NOT NULL DEFAULT '0' COMMENT '买家ID',
@@ -290,6 +292,7 @@ CREATE TABLE IF NOT EXISTS `stroe_order` (
 
 
 
+
 -- --------------------------------------------------------
 -- (商城业务)拼团表 `store_group`
 -- --------------------------------------------------------
@@ -302,7 +305,7 @@ CREATE TABLE IF NOT EXISTS `store_group` (
     `capacity` int NOT NULL DEFAULT '0' COMMENT '最大拼团人数',
     `achieve` int NOT NULL DEFAULT '0' COMMENT '拼团成功人数',
     `evolve` int NOT NULL DEFAULT '1' COMMENT '当前进度',
-    group_price DECIMAL(10,2) NOT NULL,
+    `deadline` datetime NOT NULL DEFAULT '0000-00-00 00:00:00' COMMENT '拼团截止时间',
     `intime` datetime NOT NULL DEFAULT '0000-00-00 00:00:00' COMMENT '开团时间',
     `uptime` datetime NOT NULL DEFAULT '0000-00-00 00:00:00' COMMENT '更新时间',
     PRIMARY KEY (`gid`),
@@ -313,6 +316,10 @@ CREATE TABLE IF NOT EXISTS `store_group` (
     KEY `intime` (`intime`),
     KEY `uptime` (`uptime`)
   ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='拼团表';
+
+
+
+
 
 
 
