@@ -194,7 +194,6 @@ CREATE TABLE IF NOT EXISTS `store_merchant` (
 -- parameter 当某一参数为多个时页面显示相信的诸如颜色和规格的选择
 -- label 价签 = 显示活动价折扣价促销价拼团价报名预约等
 
-
 CREATE TABLE IF NOT EXISTS `store_product` (
     `pid` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '商品ID(自动)',
     `mid` bigint unsigned NOT NULL DEFAULT '0' COMMENT '店铺ID',
@@ -209,7 +208,8 @@ CREATE TABLE IF NOT EXISTS `store_product` (
     `price` decimal(18,2) NOT NULL DEFAULT '0.00' COMMENT '售价(可免费)',
     `primed` decimal(18,2) NOT NULL DEFAULT '0.00' COMMENT '原价',
     `label` varchar(32) NOT NULL DEFAULT '活动价' COMMENT '价签(拼团,报名,预约)',
-    `capacity` int NOT NULL DEFAULT '0' COMMENT '拼团人数',
+    `capacity` int NOT NULL DEFAULT '0' COMMENT '最大拼团人数',
+    `achieve` int NOT NULL DEFAULT '0' COMMENT '拼团成功人数',
     `stock` int NOT NULL DEFAULT '0' COMMENT '当前库存',
     `sales` int NOT NULL DEFAULT '0' COMMENT '总销量',
     `state` tinyint NOT NULL DEFAULT '1' COMMENT '状态(0下架 1上架)',
@@ -218,14 +218,18 @@ CREATE TABLE IF NOT EXISTS `store_product` (
     `uptime` datetime NOT NULL DEFAULT '0000-00-00 00:00:00' COMMENT '更新时间',
     PRIMARY KEY (`pid`),
     KEY `mid` (`mid`),
+    KEY `type` (`type`),
     KEY `title` (`title`),
     KEY `hot` (`hot`),
     KEY `price` (`price`),
     KEY `primed` (`primed`),
+    KEY `label` (`label`),
     KEY `capacity` (`capacity`),
+    KEY `achieve` (`achieve`),
     KEY `stock` (`stock`),
     KEY `sales` (`sales`),
     KEY `state` (`state`),
+    KEY `uid` (`uid`),
     KEY `uptime` (`uptime`)
   ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='商品表';
 
@@ -236,70 +240,84 @@ CREATE TABLE IF NOT EXISTS `store_product` (
 -- --------------------------------------------------------
 -- oid 订单表ID  = “2” + 毫秒时间戳13位(1552276542005) + 4位随机数(0001)
 -- 自动冗余店铺信息、商家信息、商品信息、买家信息
+-- uptime 更新时间或预约时间
 
 CREATE TABLE IF NOT EXISTS `stroe_order` (
-    `oid` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '订单表ID(自动)',
-
+    `oid` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '订单ID(自动)',
     `mid` bigint unsigned NOT NULL DEFAULT '0' COMMENT '商铺ID',
     `title` varchar(255) NOT NULL DEFAULT '' COMMENT '店铺名',
     `icon` varchar(255) NOT NULL DEFAULT '' COMMENT '店铺图标',
-    `reseller` tinyint NOT NULL DEFAULT '0' COMMENT '当前分销级别',
-    `resellerrate` varchar(255) NOT NULL DEFAULT '' COMMENT '当前佣金比例',
-    
+    `reseller` tinyint NOT NULL DEFAULT '0' COMMENT '店铺分销级别',
+    `resellerrate` varchar(255) NOT NULL DEFAULT '' COMMENT '店铺佣金比例',
     `pid` bigint unsigned NOT NULL DEFAULT '0' COMMENT '商品ID',
     `title` varchar(255) NOT NULL DEFAULT '' COMMENT '商品名',
     `image` varchar(255) NOT NULL DEFAULT '' COMMENT '商品图',
     `parameter` varchar(255) NOT NULL DEFAULT '' COMMENT '商品参数（数组）',
     `gid` int NOT NULL DEFAULT '0' COMMENT '该订单拼团ID',
-    
     `price` decimal(18,2) NOT NULL DEFAULT '0.00' COMMENT '成交价格',
-    `quantity` int NOT NULL DEFAULT '0' COMMENT '下单数量',
-
+    `quantity` int NOT NULL DEFAULT '1' COMMENT '下单数量',
     `uid` bigint unsigned NOT NULL DEFAULT '0' COMMENT '买家ID',
     `nickname` varchar(128) NOT NULL DEFAULT '' COMMENT '昵称',
+    `headimg` varchar(255) NOT NULL DEFAULT '' COMMENT '头像',
+    `sex` tinyint(1) NOT NULL DEFAULT '0' COMMENT '性别',
     `email` varchar(128) NOT NULL DEFAULT '' COMMENT '邮箱',
     `cell` varchar(128) NOT NULL DEFAULT '' COMMENT '电话',
     `fname` varchar(50) NOT NULL DEFAULT '' COMMENT '姓名',
     `address` varchar(255) NOT NULL DEFAULT '' COMMENT '地址',
     `city` varchar(255) NOT NULL DEFAULT '' COMMENT '城市',
     `province` varchar(255) NOT NULL DEFAULT '' COMMENT '省份',
-    
-    
-    
-    `remark` varchar(255) NOT NULL DEFAULT '' COMMENT '备注',
+    `remark` varchar(255) NOT NULL DEFAULT '' COMMENT '买家备注',
     `state` tinyint NOT NULL DEFAULT '1' COMMENT '订单状态(0待支付、1已支付、2拼单中、3已发货、4已完成、5已取消、6异常)',
     `logistics` varchar(255) NOT NULL DEFAULT '' COMMENT '物流公司',
     `waybill` varchar(255) NOT NULL DEFAULT '' COMMENT '快递单号',
-    `intime` datetime NOT NULL DEFAULT '0000-00-00 00:00:00' COMMENT '添加时间',
-    `uptime` datetime NOT NULL DEFAULT '0000-00-00 00:00:00' COMMENT '更新时间',
-    PRIMARY KEY (`pid`),
+    `intime` datetime NOT NULL DEFAULT '0000-00-00 00:00:00' COMMENT '下单时间',
+    `uptime` datetime NOT NULL DEFAULT '0000-00-00 00:00:00' COMMENT '更新时间或预约时间',
+    PRIMARY KEY (`oid`),
     KEY `mid` (`mid`),
-    KEY `uid` (`uid`),
+    KEY `pid` (`pid`),
     KEY `title` (`title`),
-    KEY `hot` (`hot`),
+    KEY `gid` (`gid`),
     KEY `price` (`price`),
-    KEY `stock` (`stock`),
-    KEY `sales` (`sales`),
+    KEY `uid` (`uid`),
+    KEY `nickname` (`nickname`),
+    KEY `city` (`city`),
+    KEY `province` (`province`),
     KEY `state` (`state`),
+    KEY `intime` (`intime`),
     KEY `uptime` (`uptime`)
   ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='订单表';
 
 
-store_group
 
-CREATE TABLE group (
-  group_id INT PRIMARY KEY,
-  item_id INT NOT NULL,
-  group_price DECIMAL(10,2) NOT NULL,
-  group_limit INT NOT NULL,
-  FOREIGN KEY (item_id) REFERENCES item(item_id)
-);
-CREATE TABLE group_order (
-  order_id INT PRIMARY KEY,
-  group_id INT NOT NULL,
-  buyer_id INT NOT NULL,
-  FOREIGN KEY (group_id) REFERENCES group(group_id)
-);
+
+-- --------------------------------------------------------
+-- (商城业务)拼团表 `store_group`
+-- --------------------------------------------------------
+-- gid 拼团ID  = “2” + 毫秒时间戳13位(1552276542005) + 4位随机数(0001)
+
+CREATE TABLE IF NOT EXISTS `store_group` (
+    `gid` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '拼团ID(自动)',
+    `pid` bigint unsigned NOT NULL DEFAULT '0' COMMENT '拼团商品ID',
+    `uid` bigint unsigned NOT NULL DEFAULT '0' COMMENT '团长ID',
+    `capacity` int NOT NULL DEFAULT '0' COMMENT '最大拼团人数',
+    `achieve` int NOT NULL DEFAULT '0' COMMENT '拼团成功人数',
+    `evolve` int NOT NULL DEFAULT '1' COMMENT '当前进度',
+    group_price DECIMAL(10,2) NOT NULL,
+    `intime` datetime NOT NULL DEFAULT '0000-00-00 00:00:00' COMMENT '开团时间',
+    `uptime` datetime NOT NULL DEFAULT '0000-00-00 00:00:00' COMMENT '更新时间',
+    PRIMARY KEY (`gid`),
+    KEY `pid` (`pid`),
+    KEY `uid` (`uid`),
+    KEY `evolve` (`evolve`),
+    KEY `pid` (`pid`),
+    KEY `intime` (`intime`),
+    KEY `uptime` (`uptime`)
+  ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='拼团表';
+
+
+
+
+// 分销表
 CREATE TABLE distribution (
   distribution_id INT PRIMARY KEY,
   item_id INT NOT NULL,
