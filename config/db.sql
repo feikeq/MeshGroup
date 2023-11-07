@@ -165,7 +165,7 @@ CREATE TABLE IF NOT EXISTS `store_merchant` (
     `uid` bigint unsigned NOT NULL DEFAULT '0' COMMENT '用户ID',
     `domain` varchar(255) NOT NULL DEFAULT '' COMMENT '店铺网址',
     `title` varchar(255) NOT NULL DEFAULT '' COMMENT '店铺名',
-    `name` varchar(255) NOT NULL DEFAULT '' COMMENT '商户名',
+    `name` varchar(255) NOT NULL DEFAULT '' COMMENT '商户全称',
     `icon` varchar(255) NOT NULL DEFAULT '' COMMENT '店铺图标',
     `object` text COMMENT 'banner轮播图(不检索,可存json数组)',
     `remark` varchar(255) NOT NULL DEFAULT '' COMMENT '备注',
@@ -209,8 +209,8 @@ CREATE TABLE IF NOT EXISTS `store_product` (
     `price` decimal(18,2) NOT NULL DEFAULT '0.00' COMMENT '售价(可免费)',
     `primed` decimal(18,2) NOT NULL DEFAULT '0.00' COMMENT '原价',
     `label` varchar(32) NOT NULL DEFAULT '活动价' COMMENT '价签(拼团,报名,预约)',
-    `capacity` int NOT NULL DEFAULT '0' COMMENT '最大拼团人数',
-    `achieve` int NOT NULL DEFAULT '0' COMMENT '拼团成功人数',
+    `capacity` tinyint NOT NULL DEFAULT '0' COMMENT '最大拼团人数',
+    `achieve` tinyint NOT NULL DEFAULT '0' COMMENT '拼团成功人数',
     `deadline` int NOT NULL DEFAULT '0' COMMENT '拼团截止时间(分钟)',
     `stock` int NOT NULL DEFAULT '0' COMMENT '当前库存',
     `sales` int NOT NULL DEFAULT '0' COMMENT '总销量',
@@ -241,13 +241,13 @@ CREATE TABLE IF NOT EXISTS `store_product` (
 -- (商城业务)订单表 `stroe_order`
 -- --------------------------------------------------------
 -- oid 订单表ID  = “2” + 毫秒时间戳13位(1552276542005) + 4位随机数(0001)
--- 自动冗余店铺信息、商家信息、商品信息、买家信息
+-- 自动冗余店铺信息、商品信息、买家信息
 -- uptime 更新时间或预约时间
 
 CREATE TABLE IF NOT EXISTS `stroe_order` (
     `oid` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '订单ID(自动)',
     `mid` bigint unsigned NOT NULL DEFAULT '0' COMMENT '商铺ID',
-    `title` varchar(255) NOT NULL DEFAULT '' COMMENT '店铺名',
+    `name` varchar(255) NOT NULL DEFAULT '' COMMENT '商户全称',
     `icon` varchar(255) NOT NULL DEFAULT '' COMMENT '店铺图标',
     `reseller` tinyint NOT NULL DEFAULT '0' COMMENT '店铺分销级别',
     `resellerrate` varchar(255) NOT NULL DEFAULT '' COMMENT '店铺佣金比例',
